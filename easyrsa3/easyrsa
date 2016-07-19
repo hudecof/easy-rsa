@@ -693,7 +693,7 @@ Matching file found at: "
 	[ -f "$crt_out" ] && die "Certificate $err_exists $crt_out"
 
 	# create request
-	EASYRSA_REQ_CN="$name"
+	set_var EASYRSA_REQ_CN "$name"
 	gen_req "$name" batch $req_opts
 
 	# Sign it
@@ -883,10 +883,12 @@ See help output for usage details."
 	# parse command options
 	shift 2
 	local crypto="-aes256"
+        local env=""
 	while [ -n "$1" ]; do
 		case "$1" in
 			nopass)	crypto= ;;
 			file)	file="$raw_file" ;;
+			env)    env="-passin env:EASYRSA_KEY_PASSWORD_IN -passout env:EASYRSA_KEY_PASSWORD_OUT";;
 			*)	warn "Ignoring unknown command option: '$1'" ;;
 		esac
 		shift
@@ -900,7 +902,7 @@ $file"
 If the key is currently encrypted you must supply the decryption passphrase.
 ${crypto:+You will then enter a new PEM passphrase for this key.$NL}"
 
-	"$EASYRSA_OPENSSL" $key_type -in "$file" -out "$file" $crypto || die "\
+	"$EASYRSA_OPENSSL" $key_type -in "$file" -out "$file" $crypto $env || die "\
 Failed to change the private key passphrase. See above for possible openssl
 error messages."
 
